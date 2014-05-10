@@ -9,6 +9,8 @@ var Url = require('url');
 var CsvSplitter = require('./csv-splitter');
 var Readline = require('readline');
 var Http = require('http');
+var Https = require('https');
+var Url = require('url');
 
 /* -------------------------------- */
 module.exports = {
@@ -195,7 +197,7 @@ function load(url) {
     });
 }
 function download(dataFileName, url, maxRedirects) {
-    var that = this;
+    var that = this, req;
     maxRedirects = maxRedirects || 10;
     function httpGet(options, redirectCount) {
         var diferred = Q.defer();
@@ -204,7 +206,13 @@ function download(dataFileName, url, maxRedirects) {
                 throw new Error('Too many redirections. (' + redirectCount
                         + ').');
             }
-            Http.get(options, function(res) {
+            var protocol = Url.parse(url).protocol;
+            if (protocol == 'https:') {
+                req = Https;
+            } else {
+                req = Http;
+            }
+            req.get(options, function(res) {
                 try {
                     var result = null;
                     if (res.statusCode > 300 && res.statusCode < 400
